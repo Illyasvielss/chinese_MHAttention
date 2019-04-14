@@ -8,6 +8,9 @@ import numpy as np
 import nltk  #用来分词
 import collections  #用来统计词频
 from sklearn.model_selection import train_test_split
+import codecs
+import jieba
+from  To_utf_8 import convert
 # with open('comments_words_sample.txt','r',encoding='utf-8') as f:
 #     for line in f:
 #         label, sentence = line.strip().split(',',1)
@@ -22,44 +25,40 @@ from sklearn.model_selection import train_test_split
 max_features = 20000
 maxlen = 80#句子最大长度
 batch_size = 32
-# maxlen = 0  #句子最大长度
 word_freqs = collections.Counter()  #词频
-num_recs = 3000 # 样本数
-MAX_FEATURES = 2000
-MAX_SENTENCE_LENGTH = 40
+num_recs = 100 # 样本数
 i=0
-vocab_size = min(MAX_FEATURES, len(word_freqs)) + 2
-word2index = {x[0]: i+2 for i, x in enumerate(word_freqs.most_common(MAX_FEATURES))}
-word2index["PAD"] = 0
-word2index["UNK"] = 1
+vocab_size = min(max_features, len(word_freqs)) + 2#词汇大小
+word2index = {x[0]: i+2 for i, x in enumerate(word_freqs.most_common(max_features))}
+# word2index["PAD"] = 0
+# word2index["UNK"] = 1
 index2word = {v:k for k, v in word2index.items()}
 X = np.empty(num_recs,dtype=list)
 y = np.zeros(num_recs)
-path="C:\\Users\\Administrator\\PycharmProjects\\M_H_Attention\\ChnSentiCorp_htl_unba_10000\\neg\\neg"
+path="C:\\Users\\Administrator\\PycharmProjects\\M_H_Attention\\gne0_99\\neg"
 num = 0
-while num<3000:
-        name = "%d" % num
-        print(name)
-        fileName = path + "."+str(name) + ".txt"
-        text_file = open(fileName, 'r', encoding='utf-8')
-        #sentence = text_file.readlines()
-        #print(sentence)
-        for line in text_file:
-            sentence = line.strip().split("\t")
-            words = nltk.word_tokenize(sentence)
+while num<100:
+            name = "%d" % num
+            print(name)
+            fileName = path + "."+str(name) + ".txt"
+            text_file =    codecs.open(fileName, 'r',encoding='UTF-8')
+            sens = text_file.readlines()
+            sentence = (''.join(sens)).rstrip('\n')
+            #print(''.join(sens) )#list转为字符串
+            words = jieba.cut(sentence,cut_all=False)  #精确模式
             seqs = []
             for word in words:
                 if word in word2index:
                     seqs.append(word2index[word])
                 else:
-                    seqs.append(word2index["UNK"])
-
+                    seqs.append(3)#(word2index["UNK"])
             X[i] = seqs
             y[i] = 1 #neg标记为1
             i += 1
-print(X[0],X[1],X[10],X[100],X[1000],X[2999],y[0],y[1],y[10],y[100],y[1000],y[2999])
+            num +=1
+print(X[0],X[1],X[10],'\n',y[0],y[1],y[10])#,X[100],X[1000],X[2999]y[100],y[1000],y[2999]
 
-X = sequence.pad_sequences(X, maxlen=MAX_SENTENCE_LENGTH)
+X = sequence.pad_sequences(X, maxlen=maxlen)
 x_train, x_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
 
 print(len(x_train), 'train sequences')
